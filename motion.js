@@ -42,24 +42,48 @@
     reduceMotion.addEventListener('change', syncMotion);
     syncMotion();
 
-    const canvas = document.querySelector('#neural-canvas');
-    if (canvas) {
-      // Load the decorative 3D renderer after the page and only near the viewport.
-      const loadScene = () => {
-        const observer = new IntersectionObserver(entries => {
-          if (!entries.some(entry => entry.isIntersecting)) return;
-          observer.disconnect();
-          const initialize = () => import('./scene3d.js?v=20260907-3')
-            .then(({ createScene }) => createScene({canvas,isRunning,finePointer,reduceMotion,motionListeners}))
-            .catch(() => { /* The original logo is the static fallback. */ });
-          if ('requestIdleCallback' in window) requestIdleCallback(initialize,{timeout:1200});
-          else setTimeout(initialize,100);
-        }, {rootMargin:'120px'});
-        observer.observe(canvas);
-      };
-      if (document.readyState === 'complete') loadScene();
-      else window.addEventListener('load',loadScene,{once:true});
-    }
+    // Keep the first painted composition intact; motion starts after fonts and the logo settle.
+    const brandImage = document.querySelector('.hero-brand img');
+    Promise.all([
+      document.fonts?.ready || Promise.resolve(),
+      brandImage?.decode ? brandImage.decode().catch(() => {}) : Promise.resolve()
+    ]).then(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+      root.dataset.motionReady = 'true';
+    })));
+    const initiallyVisible = new WeakSet();
+    document.querySelectorAll('[data-reveal]').forEach(element => {
+      const bounds = element.getBoundingClientRect();
+      if (bounds.top < innerHeight && bounds.bottom > 0) {
+        initiallyVisible.add(element);
+        element.dataset.initialView = '';
+      }
+    });
+
+    const heroScene = document.querySelector('.hero-visual');
+    let pointerFrame = 0;
+    let sceneX = 0, sceneY = 0;
+    const resetScene = () => {
+      cancelAnimationFrame(pointerFrame); pointerFrame = 0;
+      heroScene?.style.removeProperty('--scene-x');
+      heroScene?.style.removeProperty('--scene-y');
+    };
+    heroScene?.addEventListener('pointermove', event => {
+      if (!finePointer.matches || !isRunning() || reduceMotion.matches || !root.dataset.motionReady) return;
+      const bounds = heroScene.getBoundingClientRect();
+      sceneX = ((event.clientX - bounds.left) / bounds.width - .5) * 2;
+      sceneY = ((event.clientY - bounds.top) / bounds.height - .5) * 2;
+      if (!pointerFrame) pointerFrame = requestAnimationFrame(() => {
+        pointerFrame = 0;
+        heroScene.style.setProperty('--scene-x', sceneX.toFixed(3));
+        heroScene.style.setProperty('--scene-y', sceneY.toFixed(3));
+      });
+    }, {passive:true});
+    heroScene?.addEventListener('pointerleave', resetScene);
+    motionListeners.add(resetScene);
+    document.addEventListener('visibilitychange', () => {
+      root.classList.toggle('page-hidden', document.hidden);
+      if (document.hidden) resetScene();
+    });
 
     // Line masks preserve the actual heading text and stay visible without motion.
     document.querySelectorAll('.section-title[data-reveal], #contact-title').forEach(heading => {
@@ -94,7 +118,7 @@
           revealObserver.unobserve(entry.target);
           const element = entry.target;
           element.classList.add('scene-entered');
-          if (!isRunning() || reduceMotion.matches) return;
+          if (!isRunning() || reduceMotion.matches || !root.dataset.motionReady || initiallyVisible.has(element) || element.closest('.hero')) return;
           const lineElements = [...element.querySelectorAll(':scope > .line-mask > .line-inner')];
           if (lineElements.length) {
             lineElements.forEach((line, index) => trackAnimation(line.animate([
