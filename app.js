@@ -73,7 +73,7 @@ const details = [
     repo: "Explainable-LLM-Enhanced-Phishing-Detection-Using-Transformer-Based-Models"
   },
   {
-    title: "Zaman serileriyle geleceği modellemek",
+    title: "Uçuş gecikmelerinde zaman serisi tahmini",
     intro: "Uçuş gecikmeleri için derin öğrenme mimarilerini karşılaştıran çok değişkenli zaman serisi tahmini.",
     problem: "Geçmiş operasyonlar ile meteorolojik değişkenlerin zaman içindeki ilişkileri, gecikme tahminini karmaşıklaştırıyor. Amaç, bu ilişkileri öğrenen farklı mimarileri karşılaştırmak.",
     approach: "Transformer, TCN, N-BEATS, TFT, TimeLLM ve TimesFM mimarileri; gecikmeli ve takvim tabanlı özellikler; zamana duyarlı doğrulama.",

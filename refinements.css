@@ -154,3 +154,16 @@ nav{gap:22px}.motion-toggle{margin-left:0}.nav-wrap{gap:20px}
 @media(max-width:760px){.project-card:not(:first-child) .small-tags{margin-bottom:23px}}
 @media(prefers-reduced-motion:reduce){.firewall-shield,.firewall-check,.network-traces path,.network-packet{animation:none!important;stroke-dashoffset:0}.project-detail span{transition:none}.project-detail:is(:hover,:focus-visible) span{transform:none}}
 [data-motion=paused] .firewall-shield,[data-motion=paused] .firewall-check,[data-motion=paused] .network-traces path{animation:none;stroke-dashoffset:0}
+
+/* Lit 3D orbits frame the supplied logo; the image remains the GPU fallback. */
+#neural-canvas{opacity:1;filter:drop-shadow(0 20px 16px #07526d18)}
+.hero-visual[data-scene=webgl] .hero-brand{visibility:hidden}
+.hero-visual .scene-ring{opacity:.3}
+.hero-visual:after{content:"";position:absolute;z-index:-1;left:22%;right:22%;height:32px;bottom:43px;border-radius:50%;background:#15799120;filter:blur(18px);transform:scaleY(.5)}
+.float-code{padding:20px 23px;min-width:208px;display:flex;flex-direction:column;gap:8px;background:#ffffffed;border-color:#dbe9ef;transform:rotate(-4deg)}
+.float-code strong{font-size:13px;letter-spacing:-.2px;color:#274f65;font-weight:600}
+.float-code .float-label{font-size:7px;color:#588295;letter-spacing:1px}
+.build-stack{font:9px var(--mono);color:#628294}.build-stack i{font-style:normal;color:#36a0b3;margin:0 5px}
+.hero-copy h2 em{font-weight:600}
+@media(max-width:760px){.float-code{min-width:184px;padding:17px 19px}.float-code strong{font-size:12px}.build-stack{font-size:8px}}
+@media(max-width:380px){.float-code{min-width:170px;padding:15px 17px}}
