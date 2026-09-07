@@ -45,7 +45,7 @@
     const canvas = document.querySelector('#neural-canvas');
     const context = canvas?.getContext('2d');
     if (canvas && context) {
-      const count = 128;
+      const count = finePointer.matches ? 96 : 64;
       const goldenAngle = Math.PI * (3 - Math.sqrt(5));
       const nodes = Array.from({ length: count }, (_, index) => {
         const y = 1 - (index / (count - 1)) * 2;
@@ -81,19 +81,22 @@
       let pointerY = 0;
       let smoothX = 0;
       let smoothY = 0;
+      let glow;
+      let pixelRatio = 0;
+      // Reuse the projected points instead of allocating and sorting every frame.
+      const projected = nodes.map(node => ({index:node.index,x:0,y:0,z:0,perspective:1}));
       const canAnimate = () => isRunning() && inView && !document.hidden && width > 0 && height > 0;
-      const project = (point, rotationY, rotationX) => {
-        const cosineY = Math.cos(rotationY);
-        const sineY = Math.sin(rotationY);
+      const project = (point, result, cosineY, sineY, cosineX, sineX) => {
         const x = point.x * cosineY + point.z * sineY;
         const rotatedZ = -point.x * sineY + point.z * cosineY;
-        const cosineX = Math.cos(rotationX);
-        const sineX = Math.sin(rotationX);
         const y = point.y * cosineX - rotatedZ * sineX;
         const z = point.y * sineX + rotatedZ * cosineX;
         const perspective = 3.8 / (3.8 - z);
         const scale = Math.min(width, height) * 0.315;
-        return { x: width * 0.5 + x * scale * perspective, y: height * 0.5 + y * scale * perspective, z, perspective };
+        result.x = width * 0.5 + x * scale * perspective;
+        result.y = height * 0.5 + y * scale * perspective;
+        result.z = z;
+        result.perspective = perspective;
       };
       const line = (a, b) => {
         context.beginPath();
@@ -108,10 +111,6 @@
         const centerY = height / 2;
         const radius = Math.min(width, height) * 0.315;
         context.clearRect(0, 0, width, height);
-        const glow = context.createRadialGradient(centerX, centerY, radius * 0.2, centerX, centerY, radius * 1.6);
-        glow.addColorStop(0, 'rgba(125, 174, 247, 0.11)');
-        glow.addColorStop(0.65, 'rgba(123, 179, 234, 0.04)');
-        glow.addColorStop(1, 'rgba(160, 198, 241, 0)');
         context.fillStyle = glow;
         context.fillRect(0, 0, width, height);
 
@@ -136,10 +135,11 @@
 
         const rotationY = elapsed * 0.09 + 0.4 + smoothX * 0.2;
         const rotationX = -0.16 + smoothY * 0.12;
-        const projected = nodes.map(node => ({ ...project(node, rotationY, rotationX), index: node.index }));
-        const orderedEdges = edges.map(edge => ({ ...edge, depth: (projected[edge.a].z + projected[edge.b].z) / 2 })).sort((a, b) => a.depth - b.depth);
-        orderedEdges.forEach(edge => {
-          const depth = (edge.depth + 1) / 2;
+        const cosineY = Math.cos(rotationY), sineY = Math.sin(rotationY);
+        const cosineX = Math.cos(rotationX), sineX = Math.sin(rotationX);
+        nodes.forEach((node,index) => project(node, projected[index], cosineY, sineY, cosineX, sineX));
+        edges.forEach(edge => {
+          const depth = ((projected[edge.a].z + projected[edge.b].z) / 2 + 1) / 2;
           context.strokeStyle = `rgba(77, 120, 187, ${0.055 + depth * 0.23})`;
           context.lineWidth = 0.55 + depth * 0.35;
           line(projected[edge.a], projected[edge.b]);
@@ -159,7 +159,7 @@
           context.fill();
         });
 
-        projected.sort((a, b) => a.z - b.z).forEach(node => {
+        projected.forEach(node => {
           const depth = (node.z + 1) / 2;
           const featured = node.index % 11 === 0;
           const size = (featured ? 2.8 : 1.65) * node.perspective;
@@ -187,6 +187,11 @@
       const tick = timestamp => {
         frame = 0;
         if (!canAnimate()) { previousTime = 0; return; }
+        // The ambient globe needs 30 fps; pointer and page transitions keep native refresh rates.
+        if (previousTime && timestamp - previousTime < 32) {
+          frame = window.requestAnimationFrame(tick);
+          return;
+        }
         const delta = previousTime ? Math.min((timestamp - previousTime) / 1000, 0.05) : 0;
         previousTime = timestamp;
         elapsed += delta;
@@ -208,12 +213,19 @@
       };
       const resize = () => {
         const bounds = canvas.getBoundingClientRect();
+        const ratio = Math.min(window.devicePixelRatio || 1, finePointer.matches ? 2 : 1.5);
+        if (width === bounds.width && height === bounds.height && pixelRatio === ratio) return;
         width = bounds.width;
         height = bounds.height;
-        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        pixelRatio = ratio;
         canvas.width = Math.round(width * ratio);
         canvas.height = Math.round(height * ratio);
         context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const radius = Math.min(width, height) * .315;
+        glow = context.createRadialGradient(width/2,height/2,radius*.2,width/2,height/2,radius*1.6);
+        glow.addColorStop(0, 'rgba(125, 174, 247, 0.11)');
+        glow.addColorStop(.65, 'rgba(123, 179, 234, 0.04)');
+        glow.addColorStop(1, 'rgba(160, 198, 241, 0)');
         draw();
         updatePlayback();
       };
@@ -293,14 +305,16 @@
           }
           const card = element.matches('.project-card, .paper-card');
           const hero = element.closest('.hero-copy');
+          // Critical copy renders immediately instead of waiting for an opacity reveal.
+          if (hero && element.matches('h1, p')) return;
           const delay = hero ? [...hero.querySelectorAll('[data-reveal]')].indexOf(element) * 75 : Math.min(position, 3) * 80;
           trackAnimation(element.animate(card ? [
-            { opacity: 0, transform: 'perspective(1400px) translate3d(0,72px,0) rotateX(6deg) scale(.97)', filter: 'blur(3px)' },
-            { opacity: 1, transform: 'perspective(1400px) translate3d(0,0,0) rotateX(0) scale(1)', filter: 'blur(0)' }
+            { opacity: 0, transform: 'perspective(1400px) translate3d(0,56px,0) rotateX(4deg) scale(.98)' },
+            { opacity: 1, transform: 'perspective(1400px) translate3d(0,0,0) rotateX(0) scale(1)' }
           ] : [
             { opacity: 0, transform: 'translate3d(0,32px,0)' },
             { opacity: 1, transform: 'translate3d(0,0,0)' }
-          ], { duration: card ? 1050 : 850, delay, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' }));
+          ], { duration: card ? 800 : 650, delay, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' }));
           if (element.classList.contains('research-method')) {
             [...element.children].forEach((child, index) => trackAnimation(child.animate([
               { opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'translateY(0)' }
@@ -309,6 +323,16 @@
         });
       }, { threshold: 0.12, rootMargin: '0px 0px -35px 0px' });
       document.querySelectorAll('[data-reveal]').forEach(element => revealObserver.observe(element));
+    }
+
+    // Pause looping CSS illustrations when they leave the viewport.
+    if ('IntersectionObserver' in window) {
+      const scenes = document.querySelectorAll('.hero-visual, .project-card, .paper-card');
+      const sceneObserver = new IntersectionObserver(entries => entries.forEach(({target,isIntersecting}) => {
+        target.classList.toggle('motion-visible', isIntersecting);
+        target.classList.toggle('motion-out-of-view', !isIntersecting);
+      }), {rootMargin:'60px'});
+      scenes.forEach(scene => sceneObserver.observe(scene));
     }
 
     // Native scrolling is preserved; depth is applied only to decorative layers.

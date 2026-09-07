@@ -240,17 +240,17 @@ copyButton.addEventListener("click", async () => {
 });
 document.querySelector("#year").textContent = String(new Date().getFullYear());
 let scrollQueued = false;
+const pageHeader = document.querySelector(".header");
+const sectionLinks = [...navigation.querySelectorAll('a[href^="#"]')].map(link => ({link,section:document.querySelector(link.hash)}));
 function updateScroll() {
   const max = document.documentElement.scrollHeight - innerHeight;
   document.documentElement.style.setProperty("--scroll-progress", max > 0 ? String(scrollY / max) : "0");
-  document.querySelector(".header").classList.toggle("scrolled", scrollY > 30);
-  const navLinks = [...navigation.querySelectorAll('a[href^="#"]')];
+  pageHeader.classList.toggle("scrolled", scrollY > 30);
   let current = null;
-  for (const link of navLinks) {
-    const section = document.querySelector(link.hash);
+  for (const {link,section} of sectionLinks) {
     if (section && section.getBoundingClientRect().top <= innerHeight * .38) current = link;
   }
-  navLinks.forEach(link => {
+  sectionLinks.forEach(({link}) => {
     if (link === current) link.setAttribute("aria-current", "location");
     else link.removeAttribute("aria-current");
   });
