@@ -122,30 +122,17 @@
           const lineElements = [...element.querySelectorAll(':scope > .line-mask > .line-inner')];
           if (lineElements.length) {
             lineElements.forEach((line, index) => trackAnimation(line.animate([
-              { transform: 'translate3d(0,110%,0) rotate(2deg)', opacity: 0.25 },
-              { transform: 'translate3d(0,0,0) rotate(0)', opacity: 1 }
-            ], { duration: 1000, delay: index * 125, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' })));
+              { transform: 'translate3d(0,8px,0)', opacity: 0.65 },
+              { transform: 'translate3d(0,0,0)', opacity: 1 }
+            ], { duration: 600, delay: index * 45, easing: 'cubic-bezier(.25,.1,.25,1)', fill: 'backwards' })));
             return;
           }
-          const card = element.matches('.project-card, .paper-card');
-          const hero = element.closest('.hero-copy');
-          // Critical copy renders immediately instead of waiting for an opacity reveal.
-          if (hero && element.matches('h1, p')) return;
-          const delay = hero ? [...hero.querySelectorAll('[data-reveal]')].indexOf(element) * 75 : Math.min(position, 3) * 80;
-          trackAnimation(element.animate(card ? [
-            { opacity: 0, transform: 'perspective(1400px) translate3d(0,56px,0) rotateX(4deg) scale(.98)' },
-            { opacity: 1, transform: 'perspective(1400px) translate3d(0,0,0) rotateX(0) scale(1)' }
-          ] : [
-            { opacity: 0, transform: 'translate3d(0,32px,0)' },
+          trackAnimation(element.animate([
+            { opacity: 0.65, transform: 'translate3d(0,12px,0)' },
             { opacity: 1, transform: 'translate3d(0,0,0)' }
-          ], { duration: card ? 800 : 650, delay, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' }));
-          if (element.classList.contains('research-method')) {
-            [...element.children].forEach((child, index) => trackAnimation(child.animate([
-              { opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'translateY(0)' }
-            ], { duration: 700, delay: 160 + index * 120, fill: 'backwards', easing: 'cubic-bezier(.16,1,.3,1)' })));
-          }
+          ], { duration: 600, delay: Math.min(position, 2) * 35, easing: 'cubic-bezier(.25,.1,.25,1)', fill: 'backwards' }));
         });
-      }, { threshold: 0.12, rootMargin: '0px 0px -35px 0px' });
+      }, { threshold: 0, rootMargin: '0px 0px 100px 0px' });
       document.querySelectorAll('[data-reveal]').forEach(element => revealObserver.observe(element));
     }
 
@@ -159,26 +146,13 @@
       scenes.forEach(scene => sceneObserver.observe(scene));
     }
 
-    // Native scrolling is preserved; depth is applied only to decorative layers.
-    const depthLayers = [...document.querySelectorAll('.project-card .project-art, .paper-cover')].map(surface => ({
-      surface,
-      layer: surface.querySelector('svg, .email-diagram, .series-bars, .sentiment-cloud')
-    })).filter(item => item.layer);
+    // Keep content anchored while the research indicator follows native scrolling.
     const research = document.querySelector('.research-layout');
     const researchCards = [...document.querySelectorAll('.paper-card')];
     const researchLabels = [...document.querySelectorAll('.research-index > span')];
-    const brand = document.querySelector('.hero-brand');
     let scrollFrame = 0;
     const updateDepth = () => {
       scrollFrame = 0;
-      const animate = isRunning() && !reduceMotion.matches && !document.hidden;
-      depthLayers.forEach(({ surface, layer }) => {
-        if (!animate) { layer.style.removeProperty('transform'); return; }
-        const bounds = surface.getBoundingClientRect();
-        if (bounds.bottom < -50 || bounds.top > innerHeight + 50) return;
-        const progress = Math.max(-1, Math.min(1, (bounds.top + bounds.height / 2 - innerHeight / 2) / innerHeight));
-        layer.style.transform = 'translate3d(0,' + (progress * (finePointer.matches ? 22 : 10)).toFixed(2) + 'px,0) scale(1.025)';
-      });
       if (research) {
         const bounds = research.getBoundingClientRect();
         const progress = Math.max(0, Math.min(1, (innerHeight * .65 - bounds.top) / bounds.height));
@@ -186,10 +160,6 @@
         let selected = 0;
         researchCards.forEach((card, index) => { if (card.getBoundingClientRect().top < innerHeight * .55) selected = index; });
         researchLabels.forEach((label, index) => label.classList.toggle('active', index === selected));
-      }
-      if (brand) {
-        if (animate && scrollY < innerHeight) brand.style.transform = 'translate(-50%, -48%) translate3d(0,' + Math.min(22, scrollY * .045).toFixed(2) + 'px,0)';
-        else brand.style.removeProperty('transform');
       }
     };
     const queueDepth = () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(updateDepth); };
@@ -199,43 +169,6 @@
     motionListeners.add(queueDepth);
     queueDepth();
 
-    document.querySelectorAll('.tilt-surface').forEach(surface => {
-      let frame = 0;
-      let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
-      let hovering = false;
-      const spring = () => {
-        frame = 0;
-        currentX += (targetX - currentX) * .12;
-        currentY += (targetY - currentY) * .12;
-        surface.style.transform = 'perspective(1100px) rotateX(' + (-currentY * 5).toFixed(3) + 'deg) rotateY(' + (currentX * 5).toFixed(3) + 'deg)';
-        if (Math.abs(currentX - targetX) + Math.abs(currentY - targetY) > .002) frame = requestAnimationFrame(spring);
-        else if (!hovering) surface.style.removeProperty('transform');
-      };
-      const reset = () => {
-        cancelAnimationFrame(frame);
-        frame = 0;
-        targetX = targetY = currentX = currentY = 0;
-        surface.style.removeProperty('transform');
-      };
-      surface.addEventListener('pointermove', event => {
-        if (!finePointer.matches || reduceMotion.matches || !isRunning()) return;
-        hovering = true;
-        const bounds = surface.getBoundingClientRect();
-        targetX = (event.clientX - bounds.left) / bounds.width - .5;
-        targetY = (event.clientY - bounds.top) / bounds.height - .5;
-        if (!frame) frame = requestAnimationFrame(spring);
-      }, { passive: true });
-      surface.addEventListener('pointerleave', () => {
-        hovering = false;
-        targetX = targetY = 0;
-        if (!frame && isRunning() && !reduceMotion.matches) frame = requestAnimationFrame(spring);
-        else if (!isRunning()) reset();
-      }, { passive: true });
-      surface.addEventListener('pointercancel', reset, { passive: true });
-      motionListeners.add(reset);
-      finePointer.addEventListener('change', reset);
-      reduceMotion.addEventListener('change', reset);
-    });
     document.querySelectorAll('.project-card').forEach(card => {
       card.addEventListener('pointermove', event => {
         if (!finePointer.matches || !isRunning() || reduceMotion.matches) return;

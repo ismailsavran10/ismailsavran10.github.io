@@ -27,7 +27,6 @@ window.matchMedia("(min-width: 761px)").addEventListener("change", event => { if
 const filters = [...document.querySelectorAll("[data-filter]")];
 const projects = [...document.querySelectorAll("[data-category]")];
 filters.forEach(button => button.addEventListener("click", () => {
-  const before = new Map(projects.filter(p => !p.hidden).map(p => [p, p.getBoundingClientRect()]));
   filters.forEach(item => {
     item.classList.toggle("active", item === button);
     item.setAttribute("aria-pressed", String(item === button));
@@ -41,15 +40,10 @@ filters.forEach(button => button.addEventListener("click", () => {
   });
   if (motionAllowed() && Element.prototype.animate) {
     projects.filter(p => !p.hidden).forEach((project, index) => {
-      const old = before.get(project);
-      const now = project.getBoundingClientRect();
-      project.animate(old ? [
-        { transform: "translate(" + (old.left - now.left) + "px," + (old.top - now.top) + "px)", opacity: 0.75 },
-        { transform: "translate(0,0)", opacity: 1 }
-      ] : [
-        { transform: "translateY(22px) scale(.985)", opacity: 0 },
-        { transform: "translateY(0) scale(1)", opacity: 1 }
-      ], { duration: 520, delay: index * 35, easing: "cubic-bezier(.22,1,.36,1)" });
+      project.animate([
+        { opacity: .7, transform: "translateY(6px)" },
+        { opacity: 1, transform: "translateY(0)" }
+      ], { duration: 340, delay: Math.min(index,2) * 25, easing: "cubic-bezier(.25,.1,.25,1)" });
     });
   }
   document.querySelector("#filter-status").textContent = count + " proje gösteriliyor.";
@@ -130,14 +124,14 @@ function runProjectTransition(update, opening) {
   clearSharedNames();
   if (opening && motionAllowed()) {
     fallbackAnimation = dialog.animate([
-      { opacity: 0, transform: "translateY(32px) scale(.96)" },
-      { opacity: 1, transform: "translateY(0) scale(1)" }
-    ], { duration: 520, easing: "cubic-bezier(.16,1,.3,1)" });
+      { opacity: 0, transform: "translateY(10px)" },
+      { opacity: 1, transform: "translateY(0)" }
+    ], { duration: 520, easing: "cubic-bezier(.25,.1,.25,1)" });
     [...dialog.querySelector(".dialog-content").children].forEach((child, index) => {
       child.animate([
-        { opacity: 0, transform: "translateY(18px)" },
+        { opacity: 0, transform: "translateY(6px)" },
         { opacity: 1, transform: "translateY(0)" }
-      ], { duration: 480, delay: 80 + index * 45, fill: "backwards", easing: "cubic-bezier(.16,1,.3,1)" });
+      ], { duration: 480, delay: 80 + index * 45, fill: "backwards", easing: "cubic-bezier(.25,.1,.25,1)" });
     });
   }
   return null;
@@ -190,7 +184,7 @@ async function closeProject() {
   if (!document.startViewTransition && motionAllowed()) {
     fallbackAnimation = dialog.animate([
       { opacity: 1, transform: "translateY(0) scale(1)" },
-      { opacity: 0, transform: "translateY(18px) scale(.98)" }
+      { opacity: 0, transform: "translateY(6px)" }
     ], { duration: 220, easing: "ease-in" });
     await fallbackAnimation.finished.catch(() => {});
     dialog.close();

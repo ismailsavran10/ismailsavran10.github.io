@@ -163,27 +163,39 @@ nav{gap:22px}.motion-toggle{margin-left:0}.nav-wrap{gap:20px}
 @media(max-width:760px){.float-code{min-width:184px;padding:17px 19px}.float-code strong{font-size:12px}.build-stack{font-size:8px}}
 @media(max-width:380px){.float-code{min-width:170px;padding:15px 17px}}
 
-/* A quiet data constellation is present in the first HTML paint. */
-.data-constellation{position:absolute;inset:0;pointer-events:none;perspective:1000px}
-.network-layer{position:absolute;inset:0;transition:transform 1s cubic-bezier(.2,.75,.25,1);transform-origin:50% 50%}
-.network-layer svg{display:block;width:100%;height:100%;overflow:visible}
-.network-back{transform:translate3d(calc(var(--scene-x,0)*-7px),calc(var(--scene-y,0)*-5px),0) rotateY(calc(var(--scene-x,0)*-3deg))}
-.network-back svg{stroke:#94c5d6;stroke-width:.7;opacity:.45}
-.network-mesh{transform:translate3d(calc(var(--scene-x,0)*8px),calc(var(--scene-y,0)*6px),0) rotateY(calc(var(--scene-x,0)*4deg))}
-.network-links{stroke:#82b8cf;stroke-width:.85;opacity:.4}
-.node-small{fill:#9bbfd3}.node-bright{fill:#3998ae;stroke:#effaff;stroke-width:1.8}
-.network-front{transform:translate3d(calc(var(--scene-x,0)*15px),calc(var(--scene-y,0)*10px),0)}
-.signal-track{stroke:#58aebd;stroke-width:1;opacity:.25}
-.signal-flow{stroke:#249fae;stroke-width:2;stroke-linecap:round;stroke-dasharray:3 260;animation:constellation-flow 16s linear infinite;opacity:.75}
-.network-beacons{stroke:#3c9faf;stroke-width:.8;fill:#b7e8eb;fill-opacity:.18;opacity:.55;animation:constellation-breathe 6s ease-in-out infinite alternate}
-.hero-visual .scene-ring{display:none}
-.hero-visual .halo-one{opacity:.65}.hero-visual .halo-two{opacity:.4}
-.hero-brand{visibility:visible;isolation:isolate}
-.hero-brand:before{content:"";position:absolute;inset:-25%;z-index:-1;border-radius:50%;background:radial-gradient(ellipse,#f1fafbed 20%,#f1fafb80 45%,transparent 70%)}
 html:not([data-motion-ready]) .hero *,html:not([data-motion-ready]) .hero *:before,html:not([data-motion-ready]) .hero *:after{animation-play-state:paused!important}
 .page-hidden *,.page-hidden *:before,.page-hidden *:after{animation-play-state:paused!important}
 .project-card[data-initial-view] .series-bars i,.project-card[data-initial-view] .flight-art>svg>path:first-of-type,.paper-card[data-initial-view] .curve-main{animation:none;stroke-dashoffset:0}
-@keyframes constellation-flow{to{stroke-dashoffset:-1052}}
-@keyframes constellation-breathe{from{opacity:.25}to{opacity:.7}}
-@media(prefers-reduced-motion:reduce){.network-layer{transform:none!important;transition:none}.signal-flow{animation:none;stroke-dashoffset:0}}
-[data-motion=paused] .network-layer{transform:none!important}
+
+/* Small, eased movements keep the lower sections visually anchored. */
+.project-card.scene-entered .flight-art>svg>path:first-of-type,.project-card.scene-entered .series-bars i,.paper-card.scene-entered .curve-main{animation:none;stroke-dashoffset:0}
+.project-art>svg,.email-diagram,.series-bars,.sentiment-cloud{will-change:auto}
+.project-detail:is(:hover,:focus-visible) span{transform:translate(1px,-1px)}
+.project-detail:active span{transform:scale(.97)}
+.paper-link:hover>span{transform:translate(2px,-2px)}
+.project-card:hover{box-shadow:0 10px 28px #243c6817}
+.scene-entered .firewall-shield,.scene-entered .network-traces path,.scene-entered .firewall-check,.project-card:is(:hover,:focus-within) .firewall-check{animation:none;stroke-dashoffset:0}
+.project-card.motion-visible .network-packet,.dialog-art .network-packet{animation-duration:5s}
+.project-card.motion-visible .packet-two,.dialog-art .packet-two{animation-delay:2.5s}
+::view-transition-group(project-media){animation-duration:520ms;animation-timing-function:cubic-bezier(.25,.1,.25,1)}
+::view-transition-new(project-details){animation:soft-detail-in 420ms ease 60ms both}
+::view-transition-old(project-details){animation:soft-detail-out 180ms ease both}
+@keyframes soft-detail-in{from{opacity:.3;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes soft-detail-out{to{opacity:0;transform:translateY(4px)}}
+
+.expertise:hover{transform:translateY(-2px);box-shadow:0 9px 24px #2e49740d}
+.primary:hover,.secondary:hover{transform:translateY(-1px)}
+.contact-orb:hover{transform:rotate(4deg)}
+.ambient-ribbons{position:absolute;inset:0;pointer-events:none;transform:translate3d(calc(var(--scene-x,0)*6px),calc(var(--scene-y,0)*4px),0);transition:transform 1.4s ease}
+.ambient-ribbons svg{display:block;width:100%;height:100%;overflow:visible}
+.ribbon-far,.ribbon-near,.ribbon-fine{transform-origin:280px 250px;animation:ribbon-drift 14s ease-in-out infinite alternate}
+.ribbon-near{animation-name:ribbon-return;animation-duration:18s}.ribbon-fine{animation-duration:20s}
+.hero-visual .scene-ring{display:none}.hero-visual .halo-one{opacity:.35}.hero-visual .halo-two{opacity:.3}
+.hero-brand{visibility:visible;isolation:isolate;transform:translate(-50%,-48%) perspective(1100px) rotateX(calc(var(--scene-y,0)*-2deg)) rotateY(calc(var(--scene-x,0)*3deg));transition:transform 1.4s ease}
+.hero-brand:before{content:"";position:absolute;inset:-28px -22px;z-index:-1;border-radius:30px;border:1px solid #ffffffd9;background:linear-gradient(130deg,#ffffffed,#f8fcffba);box-shadow:0 15px 45px #397f9710,inset 0 0 35px #ffffff80;transform:rotate(-3deg)}
+.floating-card{animation-duration:12s}.float-ai{animation-delay:0s}.float-code{animation-delay:0s}.float-research{animation-delay:0s}
+@keyframes ribbon-drift{from{transform:translate3d(0,-4px,0) rotate(-1deg)}to{transform:translate3d(0,4px,0) rotate(1deg)}}
+@keyframes ribbon-return{from{transform:translate3d(-3px,3px,0) rotate(1deg)}to{transform:translate3d(3px,-3px,0) rotate(-1deg)}}
+@media(max-width:760px){.hero-brand:before{inset:-20px -16px;border-radius:24px}}
+@media(prefers-reduced-motion:reduce){.ambient-ribbons{transform:none}.hero-brand{transform:translate(-50%,-48%)}.ribbon-far,.ribbon-near,.ribbon-fine{animation:none}}
+[data-motion=paused] .ambient-ribbons{transform:none}
