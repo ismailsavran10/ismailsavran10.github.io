@@ -133,8 +133,9 @@ nav{gap:22px}.motion-toggle{margin-left:0}.nav-wrap{gap:20px}
 .project-actions .project-detail,.project-actions .source-link{min-height:44px}
 .project-actions .source-link{display:inline-flex;align-items:center}
 .project-detail{white-space:nowrap}
-.project-detail span{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#edf5f7;transition:transform .45s var(--ease),background .3s,color .3s}
-.project-detail:is(:hover,:focus-visible) span{transform:translate(3px,-3px) rotate(6deg);background:var(--accent);color:white}
+.project-detail span{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;width:18px;height:18px;line-height:1;transition:transform .45s var(--ease)}
+.project-detail span svg{display:block;width:18px;height:18px}
+.project-detail:is(:hover,:focus-visible) span{transform:translate(1px,-1px);color:inherit}
 .project-detail:active span{transform:scale(.88)}
 .project-card:focus-within .project-actions:before{transform:scaleX(1)}
 .firewall-art{background:linear-gradient(135deg,#e6f2f6,#ecf8f7 55%,#e5eef8);color:#448c9e}
