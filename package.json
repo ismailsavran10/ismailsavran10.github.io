@@ -1,0 +1,7 @@
+{
+  "name": "ismail-savran-portfolio",
+  "private": true,
+  "type": "module",
+  "scripts": { "build:3d": "node scripts/build-workbench.mjs" },
+  "devDependencies": { "esbuild": "0.28.2", "three": "0.185.1" }
+}

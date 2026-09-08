@@ -1,0 +1,10 @@
+const {build}=await import('esbuild').catch(()=>import('../.tools/node_modules/esbuild/lib/main.js'));
+import {copyFile,mkdir,readFile} from 'node:fs/promises';
+import {gzipSync} from 'node:zlib';
+import {existsSync} from 'node:fs';
+const output=existsSync('public/index.html')?'public/assets':'assets';
+const modules=existsSync('node_modules/three')?'node_modules':'.tools/node_modules';
+await mkdir(output,{recursive:true});
+await build({entryPoints:['src/workbench.js'],outfile:output+'/workbench.js',bundle:true,minify:true,format:'esm',target:'es2020',nodePaths:[modules],legalComments:'eof'});
+await copyFile(modules+'/three/LICENSE',output+'/THREE-LICENSE.txt');
+const bytes=await readFile(output+'/workbench.js');console.log(JSON.stringify({bundleBytes:bytes.length,gzipBytes:gzipSync(bytes).length}));

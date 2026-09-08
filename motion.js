@@ -43,7 +43,7 @@
     syncMotion();
 
     // Keep the first painted composition intact; motion starts after fonts and the logo settle.
-    const brandImage = document.querySelector('.hero-brand img');
+    const brandImage = document.querySelector('.workbench-poster');
     Promise.all([
       document.fonts?.ready || Promise.resolve(),
       brandImage?.decode ? brandImage.decode().catch(() => {}) : Promise.resolve()
@@ -59,30 +59,8 @@
       }
     });
 
-    const heroScene = document.querySelector('.hero-visual');
-    let pointerFrame = 0;
-    let sceneX = 0, sceneY = 0;
-    const resetScene = () => {
-      cancelAnimationFrame(pointerFrame); pointerFrame = 0;
-      heroScene?.style.removeProperty('--scene-x');
-      heroScene?.style.removeProperty('--scene-y');
-    };
-    heroScene?.addEventListener('pointermove', event => {
-      if (!finePointer.matches || !isRunning() || reduceMotion.matches || !root.dataset.motionReady) return;
-      const bounds = heroScene.getBoundingClientRect();
-      sceneX = ((event.clientX - bounds.left) / bounds.width - .5) * 2;
-      sceneY = ((event.clientY - bounds.top) / bounds.height - .5) * 2;
-      if (!pointerFrame) pointerFrame = requestAnimationFrame(() => {
-        pointerFrame = 0;
-        heroScene.style.setProperty('--scene-x', sceneX.toFixed(3));
-        heroScene.style.setProperty('--scene-y', sceneY.toFixed(3));
-      });
-    }, {passive:true});
-    heroScene?.addEventListener('pointerleave', resetScene);
-    motionListeners.add(resetScene);
     document.addEventListener('visibilitychange', () => {
       root.classList.toggle('page-hidden', document.hidden);
-      if (document.hidden) resetScene();
     });
 
     // Line masks preserve the actual heading text and stay visible without motion.
