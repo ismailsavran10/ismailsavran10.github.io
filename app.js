@@ -59,11 +59,11 @@ const details = [
     repo: "Flight-Delay-Prediction-with-Machine-Learning"
   },
   {
-    title: "Açıklanabilir phishing tespiti",
-    intro: "E-posta güvenliğinde transformer modellerini LLM destekli açıklamalarla birleştiren bir sınıflandırma sistemi.",
+    title: "LLM destekli phishing tespiti",
+    intro: "Transformer tabanlı phishing tespitini Mistral-7B ile açıklanabilir güvenlik analizine dönüştüren bir LLM uygulaması.",
     problem: "Bir mesajın phishing olduğunu işaretlemek kadar, bu kararın gerekçesini anlaşılır biçimde sunmak da önemli. Bu proje güvenli / phishing ayrımını ve phishing kategorilerini ele alıyor.",
-    approach: "XLM-RoBERTa ile iki aşamalı sınıflandırma, URL özellikleri ve Gradio arayüzü. İsteğe bağlı Mistral entegrasyonuyla insan tarafından okunabilir güvenlik açıklamaları.",
-    tags: ["XLM-RoBERTa", "NLP", "Mistral", "Gradio", "Explainable AI"],
+    approach: "XLM-RoBERTa ile güvenli / phishing ayrımı ve phishing türü sınıflandırması. Mistral-7B; model tahminlerini, URL ve alan adı göstergelerini, metindeki bağlamsal ipuçlarını bir araya getirerek kararın gerekçesini doğal dilde açıklıyor. LLM entegrasyonu açıklama üretimini üstleniyor; sınıflandırma XLM-RoBERTa ile yapılıyor. Analiz ve açıklamalar Gradio arayüzünde sunuluyor.",
+    tags: ["LLM", "Mistral-7B", "XLM-RoBERTa", "Explainable AI", "Gradio"],
     repo: "Explainable-LLM-Enhanced-Phishing-Detection-Using-Transformer-Based-Models"
   },
   {
